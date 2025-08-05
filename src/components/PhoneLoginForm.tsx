@@ -23,37 +23,57 @@ export const PhoneLoginForm: React.FC<PhoneLoginFormProps> = ({ onBack }) => {
   const { signInWithPhone } = useAuth();
 
   useEffect(() => {
-    // Initialize reCAPTCHA
-    if (typeof window !== 'undefined' && !recaptchaVerifier) {
-      try {
-        const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-        console.log('Initializing reCAPTCHA with site key:', siteKey ? 'Found' : 'Missing');
-        
-        if (!siteKey) {
-          throw new Error('reCAPTCHA site key not found in environment variables');
+    // Initialize reCAPTCHA with a small delay to ensure DOM is ready
+    const initializeRecaptcha = () => {
+        if (typeof window !== 'undefined' && !recaptchaVerifier) {
+          try {
+            const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+            console.log('Initializing reCAPTCHA with site key:', siteKey ? 'Found' : 'Missing');
+            
+            // Remove the check that throws an error - let's proceed without custom site key
+            if (!siteKey) {
+              console.warn('reCAPTCHA site key not found in environment variables, using Firebase default');
+            }
+            
+            // Ensure the DOM element exists before creating RecaptchaVerifier
+            const containerElement = document.getElementById('recaptcha-container');
+            if (!containerElement) {
+              throw new Error('reCAPTCHA container element not found');
+            }
+            
+            // Create verifier with minimal config - don't use custom sitekey for now
+            const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+              size: 'invisible',
+              callback: (response: string) => {
+                console.log('reCAPTCHA solved successfully:', response);
+              },
+              'expired-callback': () => {
+                console.log('reCAPTCHA expired');
+              },
+              'error-callback': (error: any) => {
+                console.error('reCAPTCHA error:', error);
+                setError('reCAPTCHA verification failed. Please refresh the page.');
+              },
+            });
+            setRecaptchaVerifier(verifier);
+            console.log('reCAPTCHA verifier initialized successfully');
+          } catch (error) {
+            console.error('Failed to initialize reCAPTCHA:', error);
+            setError('Failed to initialize security verification. Please refresh the page.');
+          }
         }
-        
-        const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'invisible',
-          sitekey: siteKey,
-          callback: () => {
-            console.log('reCAPTCHA solved successfully');
-          },
-          'expired-callback': () => {
-            console.log('reCAPTCHA expired');
-          },
-          'error-callback': (error: any) => {
-            console.error('reCAPTCHA error:', error);
-            setError('reCAPTCHA verification failed. Please refresh the page.');
-          },
-        });
-        setRecaptchaVerifier(verifier);
-        console.log('reCAPTCHA verifier initialized successfully');
-      } catch (error) {
-        console.error('Failed to initialize reCAPTCHA:', error);
-        setError('Failed to initialize security verification. Please refresh the page.');
-      }
-    }
+      };
+    
+    // Add small delay to ensure DOM is ready
+    const timer = setTimeout(initializeRecaptcha, 100);
+    
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [recaptchaVerifier]);
+
+  // Cleanup effect
+  useEffect(() => {
 
     return () => {
       if (recaptchaVerifier) {
