@@ -26,9 +26,16 @@ export const PhoneLoginForm: React.FC<PhoneLoginFormProps> = ({ onBack }) => {
     // Initialize reCAPTCHA
     if (typeof window !== 'undefined' && !recaptchaVerifier) {
       try {
+        const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+        console.log('Initializing reCAPTCHA with site key:', siteKey ? 'Found' : 'Missing');
+        
+        if (!siteKey) {
+          throw new Error('reCAPTCHA site key not found in environment variables');
+        }
+        
         const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
           size: 'invisible',
-          sitekey: process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
+          sitekey: siteKey,
           callback: () => {
             console.log('reCAPTCHA solved successfully');
           },
@@ -41,6 +48,7 @@ export const PhoneLoginForm: React.FC<PhoneLoginFormProps> = ({ onBack }) => {
           },
         });
         setRecaptchaVerifier(verifier);
+        console.log('reCAPTCHA verifier initialized successfully');
       } catch (error) {
         console.error('Failed to initialize reCAPTCHA:', error);
         setError('Failed to initialize security verification. Please refresh the page.');
@@ -167,12 +175,12 @@ export const PhoneLoginForm: React.FC<PhoneLoginFormProps> = ({ onBack }) => {
           {step === 'phone' ? (
             <form className="mt-8 space-y-6" onSubmit={handleSendCode}>
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Phone Number
                 </label>
                 <div className="mt-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="h-5 w-5 text-gray-400" />
+                    <Phone className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     id="phone"
@@ -182,10 +190,10 @@ export const PhoneLoginForm: React.FC<PhoneLoginFormProps> = ({ onBack }) => {
                     value={phoneNumber}
                     onChange={handlePhoneNumberChange}
                     placeholder="5551234567"
-                    className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm font-medium"
+                    className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm font-medium"
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   US phone numbers only. Enter 10 digits: 5551234567
                 </p>
               </div>
