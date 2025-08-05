@@ -16,6 +16,7 @@ export interface Task {
 export interface User {
   uid: string;
   email: string | null;
+  phoneNumber: string | null;
   displayName: string | null;
   photoURL: string | null;
 }

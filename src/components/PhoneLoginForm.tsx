@@ -28,6 +28,7 @@ export const PhoneLoginForm: React.FC<PhoneLoginFormProps> = ({ onBack }) => {
       try {
         const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
           size: 'invisible',
+          sitekey: process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
           callback: () => {
             console.log('reCAPTCHA solved successfully');
           },

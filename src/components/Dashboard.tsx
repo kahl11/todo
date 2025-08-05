@@ -9,14 +9,16 @@ import {
   deleteTask, 
   subscribeToUserTasks, 
   sortTasksByPriority, 
-  getTodaysTasks 
+  getTodaysTasks,
+  getCompletedTasksByDate
 } from '../lib/tasks';
 import { TaskForm } from './TaskForm';
 import { TaskCard } from './TaskCard';
+import { Calendar } from './Calendar';
 import { 
   Plus, 
   LogOut, 
-  Calendar, 
+  Calendar as CalendarIcon, 
   Flag,
   User,
   CheckCircle
@@ -28,6 +30,8 @@ export const Dashboard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -55,8 +59,18 @@ export const Dashboard: React.FC = () => {
 
   const sortedTasks = sortTasksByPriority(tasks);
   const todaysTasks = getTodaysTasks(tasks);
-  const completedTasks = tasks.filter(task => task.completed);
-  const pendingTasks = tasks.filter(task => !task.completed);
+  
+  // Get completed tasks based on selected date
+  const selectedCompletedTasks = getCompletedTasksByDate(tasks, selectedDate);
+  
+  // Generate task completion counts for calendar
+  const completedTaskCounts = tasks.reduce((acc: Record<string, number>, task) => {
+    if (task.completed && task.completedDate) {
+      const dateKey = task.completedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+      acc[dateKey] = (acc[dateKey] || 0) + 1;
+    }
+    return acc;
+  }, {});
 
   if (loading) {
     return (
@@ -82,9 +96,20 @@ export const Dashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
                 <User className="h-4 w-4" />
-                <span>{user?.email}</span>
+                <span>{user?.phoneNumber || user?.email}</span>
               </div>
               <ThemeToggle />
+              <button
+                onClick={() => setShowCalendar(!showCalendar)}
+                className={`px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200 ${
+                  showCalendar 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <CalendarIcon className="h-4 w-4" />
+                <span>Calendar</span>
+              </button>
               <button
                 onClick={() => setShowTaskForm(true)}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200"
@@ -126,8 +151,10 @@ export const Dashboard: React.FC = () => {
                 <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{completedTasks.length}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Completed {selectedDate.toDateString() === new Date().toDateString() ? 'Today' : selectedDate.toLocaleDateString()}
+                </p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{selectedCompletedTasks.length}</p>
               </div>
             </div>
           </div>
@@ -135,7 +162,7 @@ export const Dashboard: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center">
               <div className="h-12 w-12 bg-orange-100 dark:bg-orange-900 rounded-xl flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                <CalendarIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Due Today</p>
@@ -186,24 +213,67 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Today's Tasks */}
-          <div>
+          {/* Calendar and Completed Tasks */}
+          <div className="space-y-6">
+            {/* Calendar */}
+            {showCalendar && (
+              <Calendar
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+                completedTaskCounts={completedTaskCounts}
+              />
+            )}
+            
+            {/* Due Today Tasks (when calendar is hidden) */}
+            {!showCalendar && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                    <CalendarIcon className="h-5 w-5 mr-2" />
+                    Due Today
+                  </h2>
+                </div>
+                <div className="p-6">
+                  {todaysTasks.length === 0 ? (
+                    <div className="text-center py-8">
+                      <CalendarIcon className="h-8 w-8 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400">No tasks due today</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {todaysTasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onUpdate={handleUpdateTask}
+                          onDelete={handleDeleteTask}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Completed Tasks for Selected Date */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  Due Today
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Completed {selectedDate.toDateString() === new Date().toDateString() ? 'Today' : `on ${selectedDate.toLocaleDateString()}`}
                 </h2>
               </div>
               <div className="p-6">
-                {todaysTasks.length === 0 ? (
+                {selectedCompletedTasks.length === 0 ? (
                   <div className="text-center py-8">
-                    <Calendar className="h-8 w-8 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">No tasks due today</p>
+                    <CheckCircle className="h-8 w-8 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      No tasks completed {selectedDate.toDateString() === new Date().toDateString() ? 'today' : 'on this date'}
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {todaysTasks.map((task) => (
+                    {selectedCompletedTasks.map((task) => (
                       <TaskCard
                         key={task.id}
                         task={task}

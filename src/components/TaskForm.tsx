@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { CreateTaskData, Priority } from '../types';
 import { Plus, Calendar, Flag } from 'lucide-react';
-import { format } from 'date-fns';
 
 interface TaskFormProps {
   onSubmit: (task: CreateTaskData) => Promise<void>;

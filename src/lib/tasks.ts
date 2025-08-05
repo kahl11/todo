@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../app/firebase';
 import { Task, CreateTaskData, Priority } from '../types';
-import { v4 as uuidv4 } from 'uuid';
+import { isToday, isSameDay } from 'date-fns';
 
 const TASKS_COLLECTION = 'tasks';
 
@@ -128,6 +128,20 @@ export const getTodaysTasks = (tasks: Task[]): Task[] => {
     const deadline = new Date(task.deadline);
     deadline.setHours(0, 0, 0, 0);
     return deadline.getTime() === today.getTime();
+  });
+};
+
+export const getTodaysCompletedTasks = (tasks: Task[]): Task[] => {
+  return tasks.filter(task => {
+    if (!task.completed || !task.completedDate) return false;
+    return isToday(task.completedDate);
+  });
+};
+
+export const getCompletedTasksByDate = (tasks: Task[], selectedDate: Date): Task[] => {
+  return tasks.filter(task => {
+    if (!task.completed || !task.completedDate) return false;
+    return isSameDay(task.completedDate, selectedDate);
   });
 };
 

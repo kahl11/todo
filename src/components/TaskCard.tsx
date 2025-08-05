@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Task, Priority } from '../types';
+import { Task } from '../types';
 import { 
   Calendar, 
   Flag, 
