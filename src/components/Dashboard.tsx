@@ -30,6 +30,7 @@ export const Dashboard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -47,6 +48,21 @@ export const Dashboard: React.FC = () => {
   const handleCreateTask = async (taskData: CreateTaskData) => {
     if (!user) return;
     await createTask(user.uid, taskData);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setShowTaskForm(true);
+  };
+
+  const handleTaskSubmit = async (taskData: CreateTaskData) => {
+    if (editingTask) {
+      // Update existing task
+      await handleUpdateTask(editingTask.id, taskData);
+    } else {
+      // Create new task
+      await handleCreateTask(taskData);
+    }
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
@@ -111,7 +127,10 @@ export const Dashboard: React.FC = () => {
                 <span>Calendar</span>
               </button>
               <button
-                onClick={() => setShowTaskForm(true)}
+                onClick={() => {
+                  setEditingTask(null);
+                  setShowTaskForm(true);
+                }}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200"
               >
                 <Plus className="h-4 w-4" />
@@ -205,6 +224,7 @@ export const Dashboard: React.FC = () => {
                         task={task}
                         onUpdate={handleUpdateTask}
                         onDelete={handleDeleteTask}
+                        onEdit={handleEditTask}
                       />
                     ))}
                   </div>
@@ -247,6 +267,7 @@ export const Dashboard: React.FC = () => {
                           task={task}
                           onUpdate={handleUpdateTask}
                           onDelete={handleDeleteTask}
+                          onEdit={handleEditTask}
                         />
                       ))}
                     </div>
@@ -279,6 +300,7 @@ export const Dashboard: React.FC = () => {
                         task={task}
                         onUpdate={handleUpdateTask}
                         onDelete={handleDeleteTask}
+                        onEdit={handleEditTask}
                       />
                     ))}
                   </div>
@@ -292,8 +314,12 @@ export const Dashboard: React.FC = () => {
       {/* Task Form Modal */}
       <TaskForm
         isOpen={showTaskForm}
-        onSubmit={handleCreateTask}
-        onCancel={() => setShowTaskForm(false)}
+        onSubmit={handleTaskSubmit}
+        onCancel={() => {
+          setShowTaskForm(false);
+          setEditingTask(null);
+        }}
+        editTask={editingTask}
       />
     </div>
   );

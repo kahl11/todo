@@ -1,21 +1,38 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CreateTaskData, Priority } from '../types';
-import { Plus, Calendar, Flag } from 'lucide-react';
+import { CreateTaskData, Priority, Task } from '../types';
+import { Plus, Calendar, Flag, Save } from 'lucide-react';
 
 interface TaskFormProps {
   onSubmit: (task: CreateTaskData) => Promise<void>;
   onCancel?: () => void;
   isOpen: boolean;
+  editTask?: Task | null; // Add support for editing existing tasks
 }
 
-export const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, isOpen }) => {
+export const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, isOpen, editTask }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<Priority>(3);
   const [deadline, setDeadline] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Populate form when editing
+  React.useEffect(() => {
+    if (editTask) {
+      setTitle(editTask.title);
+      setDescription(editTask.description || '');
+      setPriority(editTask.priority);
+      setDeadline(editTask.deadline ? editTask.deadline.toISOString().split('T')[0] : '');
+    } else {
+      // Reset form for new task
+      setTitle('');
+      setDescription('');
+      setPriority(3);
+      setDeadline('');
+    }
+  }, [editTask, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,11 +47,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, isOpen }
         deadline: deadline ? new Date(deadline) : undefined,
       });
       
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setPriority(3);
-      setDeadline('');
+      // Reset form only if not editing
+      if (!editTask) {
+        setTitle('');
+        setDescription('');
+        setPriority(3);
+        setDeadline('');
+      }
       onCancel?.();
     } catch (error) {
       console.error('Error creating task:', error);
@@ -54,7 +73,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, isOpen }
               <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center">
                 <Plus className="h-5 w-5 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Task</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                {editTask ? 'Edit Task' : 'Create New Task'}
+              </h2>
             </div>
           </div>
 
@@ -138,8 +159,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, isOpen }
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Create Task
+                    {editTask ? (
+                      <Save className="h-4 w-4 mr-1" />
+                    ) : (
+                      <Plus className="h-4 w-4 mr-1" />
+                    )}
+                    {editTask ? 'Update Task' : 'Create Task'}
                   </>
                 )}
               </button>
