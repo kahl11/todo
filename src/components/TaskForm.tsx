@@ -24,7 +24,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, isOpen, 
       setTitle(editTask.title);
       setDescription(editTask.description || '');
       setPriority(editTask.priority);
-      setDeadline(editTask.deadline ? editTask.deadline.toISOString().split('T')[0] : '');
+      setDeadline(editTask.deadline ? 
+        `${editTask.deadline.getFullYear()}-${String(editTask.deadline.getMonth() + 1).padStart(2, '0')}-${String(editTask.deadline.getDate()).padStart(2, '0')}` 
+        : '');
     } else {
       // Reset form for new task
       setTitle('');
@@ -44,7 +46,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, isOpen, 
         title: title.trim(),
         description: description.trim() || undefined,
         priority,
-        deadline: deadline ? new Date(deadline) : undefined,
+        deadline: deadline ? new Date(deadline + 'T00:00:00') : undefined,
       });
       
       // Reset form only if not editing
