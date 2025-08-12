@@ -53,8 +53,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate, onDelete, on
     }
   };
 
-  const isOverdue = task.deadline && isPast(task.deadline) && !task.completed;
   const isDueToday = task.deadline && isToday(task.deadline);
+  const isOverdue = task.deadline && isPast(task.deadline) && !task.completed && !isDueToday;
 
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow duration-200 ${
