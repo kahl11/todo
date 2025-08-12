@@ -164,7 +164,7 @@ export const EODNotes: React.FC<EODNotesProps> = ({ userId, selectedDate, isToda
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Write about your achievements, learnings, challenges, or anything noteworthy from today..."
+                placeholder="..."
                 className="w-full h-32 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 autoFocus
               />
