@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CreateTaskData, Priority, Task } from '../types';
 import { Plus, Calendar, Flag, Save } from 'lucide-react';
+import { theme, getButtonClass, cn } from '../styles/theme';
 
 interface TaskFormProps {
   onSubmit: (task: CreateTaskData) => Promise<void>;
@@ -67,8 +68,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, isOpen, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md">
+    <div className={theme.components.modal.overlay}>
+      <div className={theme.components.modal.content}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">

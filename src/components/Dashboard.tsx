@@ -17,6 +17,8 @@ import { TaskForm } from './TaskForm';
 import { TaskCard } from './TaskCard';
 import { Calendar } from './Calendar';
 import { EODNotes } from './EODNotes';
+import { theme, getButtonClass, getCardClass, cn } from '../styles/theme';
+import { AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
   LogOut, 
@@ -99,7 +101,7 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -126,28 +128,32 @@ export const Dashboard: React.FC = () => {
               <ThemeToggle />
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
-                className={`px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200 ${
-                  showCalendar 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
+                className={showCalendar ? getButtonClass('primary') : getButtonClass('secondary')}
               >
                 <CalendarIcon className="h-4 w-4" />
                 <span>Calendar</span>
+              </button>
+              <button
+                onClick={() => setSelectedDate(new Date())}
+                className={getButtonClass('secondary')}
+                title="Go to today"
+              >
+                <CalendarIcon className="h-4 w-4" />
+                <span>Today</span>
               </button>
               <button
                 onClick={() => {
                   setEditingTask(null);
                   setShowTaskForm(true);
                 }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200"
+                className={getButtonClass('primary')}
               >
                 <Plus className="h-4 w-4" />
                 <span>New Task</span>
               </button>
               <button
                 onClick={logout}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-3 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                className={getButtonClass('ghost')}
               >
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
@@ -163,7 +169,7 @@ export const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center">
-              <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
                 <Flag className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4">
@@ -227,15 +233,17 @@ export const Dashboard: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {sortedTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onUpdate={handleUpdateTask}
-                        onDelete={handleDeleteTask}
-                        onEdit={handleEditTask}
-                      />
-                    ))}
+                    <AnimatePresence>
+                      {sortedTasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onUpdate={handleUpdateTask}
+                          onDelete={handleDeleteTask}
+                          onEdit={handleEditTask}
+                        />
+                      ))}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
@@ -270,15 +278,17 @@ export const Dashboard: React.FC = () => {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {todaysTasks.map((task) => (
-                        <TaskCard
-                          key={task.id}
-                          task={task}
-                          onUpdate={handleUpdateTask}
-                          onDelete={handleDeleteTask}
-                          onEdit={handleEditTask}
-                        />
-                      ))}
+                      <AnimatePresence>
+                        {todaysTasks.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onUpdate={handleUpdateTask}
+                            onDelete={handleDeleteTask}
+                            onEdit={handleEditTask}
+                          />
+                        ))}
+                      </AnimatePresence>
                     </div>
                   )}
                 </div>
@@ -303,15 +313,17 @@ export const Dashboard: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {selectedCompletedTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onUpdate={handleUpdateTask}
-                        onDelete={handleDeleteTask}
-                        onEdit={handleEditTask}
-                      />
-                    ))}
+                    <AnimatePresence>
+                      {selectedCompletedTasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onUpdate={handleUpdateTask}
+                          onDelete={handleDeleteTask}
+                          onEdit={handleEditTask}
+                        />
+                      ))}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
