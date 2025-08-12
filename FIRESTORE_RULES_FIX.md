@@ -24,6 +24,12 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
     
+    // Allow authenticated users to read/write their own EOD notes
+    match /eod_notes/{noteId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
     // Allow authenticated users to read/write their own user data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;

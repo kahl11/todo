@@ -27,3 +27,17 @@ export interface CreateTaskData {
   priority: Priority;
   deadline?: Date;
 }
+
+export interface EODNote {
+  id: string;
+  userId: string;
+  date: Date; // Date for which this note was written (YYYY-MM-DD)
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateEODNoteData {
+  content: string;
+  date: Date;
+}

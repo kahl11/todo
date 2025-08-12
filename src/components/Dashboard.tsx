@@ -12,9 +12,11 @@ import {
   getTodaysTasks,
   getCompletedTasksByDate
 } from '../lib/tasks';
+import { isToday } from 'date-fns';
 import { TaskForm } from './TaskForm';
 import { TaskCard } from './TaskCard';
 import { Calendar } from './Calendar';
+import { EODNotes } from './EODNotes';
 import { 
   Plus, 
   LogOut, 
@@ -73,7 +75,14 @@ export const Dashboard: React.FC = () => {
     await deleteTask(taskId);
   };
 
-  const sortedTasks = sortTasksByPriority(tasks);
+  // Filter tasks for "All Tasks" - exclude completed tasks unless completed today
+  const tasksForAllSection = tasks.filter(task => {
+    if (!task.completed) return true; // Include all incomplete tasks
+    if (!task.completedDate) return true; // Include completed tasks without completion date (fallback)
+    return isToday(task.completedDate); // Only include completed tasks if completed today
+  });
+  
+  const sortedTasks = sortTasksByPriority(tasksForAllSection);
   const todaysTasks = getTodaysTasks(tasks);
   
   // Get completed tasks based on selected date
@@ -307,6 +316,13 @@ export const Dashboard: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* EOD Notes */}
+            <EODNotes 
+              userId={user!.uid}
+              selectedDate={selectedDate}
+              isToday={isToday(selectedDate)}
+            />
           </div>
         </div>
       </main>

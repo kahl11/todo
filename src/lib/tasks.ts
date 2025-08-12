@@ -13,10 +13,11 @@ import {
   DocumentData 
 } from 'firebase/firestore';
 import { db } from '../app/firebase';
-import { Task, CreateTaskData, Priority } from '../types';
+import { Task, CreateTaskData, Priority, EODNote, CreateEODNoteData } from '../types';
 import { isToday, isSameDay } from 'date-fns';
 
 const TASKS_COLLECTION = 'tasks';
+const EOD_NOTES_COLLECTION = 'eod_notes';
 
 // Priority order for sorting (higher number = higher priority)
 const PRIORITY_ORDER: Record<Priority, number> = {
@@ -177,4 +178,96 @@ export const getPriorityLabel = (priority: Priority): string => {
     default:
       return `Priority ${priority}`;
   }
+};
+
+// Convert Firestore document to EODNote type
+const convertFirestoreEODNote = (doc: any): EODNote => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    userId: data.userId,
+    date: data.date?.toDate() || new Date(),
+    content: data.content || '',
+    createdAt: data.createdAt?.toDate() || new Date(),
+    updatedAt: data.updatedAt?.toDate() || new Date(),
+  };
+};
+
+// Create a new EOD note
+export const createEODNote = async (userId: string, noteData: CreateEODNoteData): Promise<void> => {
+  const now = Timestamp.now();
+  const noteDate = Timestamp.fromDate(noteData.date);
+  
+  const docData = {
+    userId,
+    content: noteData.content,
+    date: noteDate,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await addDoc(collection(db, EOD_NOTES_COLLECTION), docData);
+};
+
+// Update an existing EOD note
+export const updateEODNote = async (noteId: string, updates: Partial<CreateEODNoteData>): Promise<void> => {
+  const noteRef = doc(db, EOD_NOTES_COLLECTION, noteId);
+  const updateData: any = {
+    updatedAt: Timestamp.now(),
+  };
+
+  if (updates.content !== undefined) {
+    updateData.content = updates.content;
+  }
+
+  if (updates.date !== undefined) {
+    updateData.date = Timestamp.fromDate(updates.date);
+  }
+
+  await updateDoc(noteRef, updateData);
+};
+
+// Delete an EOD note
+export const deleteEODNote = async (noteId: string): Promise<void> => {
+  const noteRef = doc(db, EOD_NOTES_COLLECTION, noteId);
+  await deleteDoc(noteRef);
+};
+
+// Get EOD note for a specific date
+export const getEODNoteForDate = async (userId: string, date: Date): Promise<EODNote | null> => {
+  const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+
+  const q = query(
+    collection(db, EOD_NOTES_COLLECTION),
+    where('userId', '==', userId),
+    where('date', '>=', Timestamp.fromDate(startOfDay)),
+    where('date', '<=', Timestamp.fromDate(endOfDay))
+  );
+
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (snapshot.empty) {
+        resolve(null);
+      } else {
+        const doc = snapshot.docs[0]; // Should only be one note per date
+        resolve(convertFirestoreEODNote(doc));
+      }
+      unsubscribe();
+    }, reject);
+  });
+};
+
+// Subscribe to EOD notes for a user
+export const subscribeToUserEODNotes = (userId: string, callback: (notes: EODNote[]) => void): () => void => {
+  const q = query(
+    collection(db, EOD_NOTES_COLLECTION),
+    where('userId', '==', userId),
+    orderBy('date', 'desc')
+  );
+
+  return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+    const notes = snapshot.docs.map(convertFirestoreEODNote);
+    callback(notes);
+  });
 };
