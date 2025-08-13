@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../app/firebase';
 import { Task, CreateTaskData, Priority, EODNote, CreateEODNoteData } from '../types';
-import { isToday, isSameDay } from 'date-fns';
+import { isToday, isSameDay, isPast } from 'date-fns';
 
 const TASKS_COLLECTION = 'tasks';
 const EOD_NOTES_COLLECTION = 'eod_notes';
@@ -111,9 +111,32 @@ export const subscribeToUserTasks = (
 
 export const sortTasksByPriority = (tasks: Task[]): Task[] => {
   return [...tasks].sort((a, b) => {
+    // Completed tasks always go to bottom
     if (a.completed !== b.completed) {
-      return a.completed ? 1 : -1; // Completed tasks go to bottom
+      return a.completed ? 1 : -1;
     }
+    
+    // For incomplete tasks, check if they're overdue
+    if (!a.completed && !b.completed) {
+      const aIsOverdue = a.deadline && isPast(a.deadline) && !isToday(a.deadline);
+      const bIsOverdue = b.deadline && isPast(b.deadline) && !isToday(b.deadline);
+      
+      // Overdue tasks go to top
+      if (aIsOverdue !== bIsOverdue) {
+        return aIsOverdue ? -1 : 1;
+      }
+      
+      // If both are overdue or both are not overdue, check if due today
+      const aIsDueToday = a.deadline && isToday(a.deadline);
+      const bIsDueToday = b.deadline && isToday(b.deadline);
+      
+      // Tasks due today come after overdue but before regular tasks
+      if (aIsDueToday !== bIsDueToday) {
+        return aIsDueToday ? -1 : 1;
+      }
+    }
+    
+    // Finally sort by priority
     return PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
   });
 };
