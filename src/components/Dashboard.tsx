@@ -174,7 +174,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Tasks</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{tasks.length}</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{tasks.filter((t) => !t.completed).length}</p>
               </div>
             </div>
           </div>
