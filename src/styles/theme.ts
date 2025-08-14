@@ -52,13 +52,13 @@ export const theme = {
     // Button variants
     button: {
       primary: `bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium 
-               flex items-center space-x-2 transition-colors duration-200`,
+               flex items-center space-x-2 transition-colors duration-200 transition-transform duration-150 active:scale-95 cursor-pointer`,
       secondary: `text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 
-                 px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200`,
+                 px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200 transition-transform duration-150 active:scale-95 cursor-pointer`,
       danger: `text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 
-              px-4 py-2 rounded-lg transition-colors duration-200`,
+              px-4 py-2 rounded-lg transition-colors duration-200 transition-transform duration-150 active:scale-95 cursor-pointer`,
       ghost: `text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 
-             p-2 rounded-lg transition-colors duration-200`,
+             p-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 transition-transform duration-150 active:scale-95 cursor-pointer`,
     },
 
     // Card styles

@@ -1,3 +1,8 @@
 @import "tailwindcss";
 
 @variant dark (.dark &);
+
+/* Ensure all buttons show pointer cursor */
+button, [role="button"], .btn {
+  cursor: pointer;
+}
