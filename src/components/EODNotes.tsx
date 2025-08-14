@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { EODNote, CreateEODNoteData } from '../types';
+import { EODNote } from '../types';
 import { 
   createEODNote, 
   updateEODNote, 
@@ -16,6 +16,7 @@ import {
   Plus,
   X
 } from 'lucide-react';
+import { isPast } from 'date-fns';
 
 interface EODNotesProps {
   userId: string;
@@ -29,6 +30,7 @@ export const EODNotes: React.FC<EODNotesProps> = ({ userId, selectedDate, isToda
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const isPastDate = isPast(selectedDate) && !isToday;
 
   // Load note for the selected date
   useEffect(() => {
@@ -38,7 +40,7 @@ export const EODNotes: React.FC<EODNotesProps> = ({ userId, selectedDate, isToda
         const existingNote = await getEODNoteForDate(userId, selectedDate);
         setNote(existingNote);
         setContent(existingNote?.content || '');
-        setIsEditing(!existingNote && isToday); // Auto-edit mode if no note exists and it's today
+        setIsEditing(!existingNote && (isToday || isPastDate)); // Allow creating notes for past dates or today
       } catch (error) {
         console.error('Error loading EOD note:', error);
       } finally {
@@ -47,7 +49,7 @@ export const EODNotes: React.FC<EODNotesProps> = ({ userId, selectedDate, isToda
     };
 
     loadNote();
-  }, [userId, selectedDate, isToday]);
+  }, [userId, selectedDate, isToday, isPastDate]);
 
   const handleSave = async () => {
     if (!content.trim()) return;
@@ -206,12 +208,14 @@ export const EODNotes: React.FC<EODNotesProps> = ({ userId, selectedDate, isToda
               No EOD note for this date
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {isToday 
-                ? "Reflect on what you accomplished today" 
-                : "No notes were written for this date"
+              {isToday
+                ? "Reflect on what you accomplished today"
+                : isPastDate
+                  ? "Add notes for this past date"
+                  : "No notes were written for this date"
               }
             </p>
-            {isToday && (
+            {(isToday || isPastDate) && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 mx-auto transition-colors duration-200"
