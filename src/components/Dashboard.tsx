@@ -126,13 +126,35 @@ export const Dashboard: React.FC = () => {
                 <span>{user?.phoneNumber || user?.email}</span>
               </div>
               <ThemeToggle />
-              <button
-                onClick={() => setShowCalendar(!showCalendar)}
-                className={showCalendar ? getButtonClass('primary') : getButtonClass('secondary')}
-              >
-                <CalendarIcon className="h-4 w-4" />
-                <span>Calendar</span>
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowCalendar(!showCalendar)}
+                  className={showCalendar ? getButtonClass('primary') : getButtonClass('secondary')}
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  <span>Calendar</span>
+                </button>
+                {showCalendar && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 bg-transparent"
+                      onClick={() => setShowCalendar(false)}
+                    />
+                    <div className="absolute right-0 mt-2 z-50">
+                      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-2">
+                        <Calendar
+                          selectedDate={selectedDate}
+                          onDateSelect={(date) => {
+                            setSelectedDate(date);
+                            setShowCalendar(false);
+                          }}
+                          completedTaskCounts={completedTaskCounts}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               <button
                 onClick={() => setSelectedDate(new Date())}
                 className={getButtonClass('secondary')}
@@ -252,17 +274,8 @@ export const Dashboard: React.FC = () => {
 
           {/* Calendar and Completed Tasks */}
           <div className="space-y-6">
-            {/* Calendar */}
-            {showCalendar && (
-              <Calendar
-                selectedDate={selectedDate}
-                onDateSelect={setSelectedDate}
-                completedTaskCounts={completedTaskCounts}
-              />
-            )}
-            
-            {/* Due Today Tasks (when calendar is hidden) */}
-            {!showCalendar && (
+            {/* Due Today Tasks */}
+            {
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
@@ -293,7 +306,7 @@ export const Dashboard: React.FC = () => {
                   )}
                 </div>
               </div>
-            )}
+            }
 
             {/* Completed Tasks for Selected Date */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">

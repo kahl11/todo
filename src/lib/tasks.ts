@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../app/firebase';
 import { Task, CreateTaskData, Priority, EODNote, CreateEODNoteData } from '../types';
-import { isToday, isSameDay, isPast } from 'date-fns';
+import { isToday, isSameDay, isTomorrow } from 'date-fns';
 
 const TASKS_COLLECTION = 'tasks';
 const EOD_NOTES_COLLECTION = 'eod_notes';
@@ -111,32 +111,24 @@ export const subscribeToUserTasks = (
 
 export const sortTasksByPriority = (tasks: Task[]): Task[] => {
   return [...tasks].sort((a, b) => {
-    // Completed tasks always go to bottom
+    // Completed tasks at bottom
     if (a.completed !== b.completed) {
       return a.completed ? 1 : -1;
     }
-    
-    // For incomplete tasks, check if they're overdue
-    if (!a.completed && !b.completed) {
-      const aIsOverdue = a.deadline && isPast(a.deadline) && !isToday(a.deadline);
-      const bIsOverdue = b.deadline && isPast(b.deadline) && !isToday(b.deadline);
-      
-      // Overdue tasks go to top
-      if (aIsOverdue !== bIsOverdue) {
-        return aIsOverdue ? -1 : 1;
-      }
-      
-      // If both are overdue or both are not overdue, check if due today
-      const aIsDueToday = a.deadline && isToday(a.deadline);
-      const bIsDueToday = b.deadline && isToday(b.deadline);
-      
-      // Tasks due today come after overdue but before regular tasks
-      if (aIsDueToday !== bIsDueToday) {
-        return aIsDueToday ? -1 : 1;
-      }
+
+    const aDueToday = !!(a.deadline && isToday(a.deadline));
+    const bDueToday = !!(b.deadline && isToday(b.deadline));
+    if (aDueToday !== bDueToday) {
+      return aDueToday ? -1 : 1;
     }
-    
-    // Finally sort by priority
+
+    const aDueTomorrow = !!(a.deadline && isTomorrow(a.deadline));
+    const bDueTomorrow = !!(b.deadline && isTomorrow(b.deadline));
+    if (aDueTomorrow !== bDueTomorrow) {
+      return aDueTomorrow ? -1 : 1;
+    }
+
+    // Then sort remaining by priority (desc)
     return PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
   });
 };
