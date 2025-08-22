@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../app/firebase';
 import { Task, CreateTaskData, Priority, EODNote, CreateEODNoteData } from '../types';
-import { isToday, isSameDay, isTomorrow } from 'date-fns';
+import { isToday, isSameDay, isTomorrow, isPast } from 'date-fns';
 
 const TASKS_COLLECTION = 'tasks';
 const EOD_NOTES_COLLECTION = 'eod_notes';
@@ -114,6 +114,12 @@ export const sortTasksByPriority = (tasks: Task[]): Task[] => {
     // Completed tasks at bottom
     if (a.completed !== b.completed) {
       return a.completed ? 1 : -1;
+    }
+
+    const aOverdue = !!(a.deadline && isPast(a.deadline) && !isToday(a.deadline));
+    const bOverdue = !!(b.deadline && isPast(b.deadline) && !isToday(b.deadline));
+    if (aOverdue !== bOverdue) {
+      return aOverdue ? -1 : 1;
     }
 
     const aDueToday = !!(a.deadline && isToday(a.deadline));
